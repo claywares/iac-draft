@@ -1,0 +1,41 @@
+containers:
+  node-build-env:
+    image: node:18.10.0-alpine3.15
+    volumes:
+      - local: <{batect.project_directory}
+        container: /code
+        options: cached
+      - type: cache
+        name: node_modules
+        container: /code/node_modules
+      - type: cache
+        name: yarn_cache
+        container: /home/user/.cache/yarn
+    working_directory: /code
+    run_as_current_user:
+      enabled: true
+      home_directory: /home/user
+
+tasks:
+  setup:
+    group: pre-command
+    description: Install dependencies
+    run:
+      container: node-build-env
+      command: yarn install
+
+  test:
+    description: Run test by jest
+    prerequisites:
+      - setup
+    run:
+      container: node-build-env
+      command: yarn test
+
+  eslint:
+    description: Run linting
+    prerequisites:
+      - setup
+    run:
+      container: node-build-env
+      command: yarn eslint
